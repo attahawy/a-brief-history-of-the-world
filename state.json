@@ -261,23 +261,19 @@
     632,
     633,
     634,
-    635
+    635,
+    636,
+    637
   ],
-  "pending": {
+  "pending": null,
+  "lastDelivery": {
     "eventId": "81379669f8b8f9f16d226bde91c6329e8e8aeb6f80f7b5912b6803b30bfaae59",
     "pageIds": [
       636,
       637
     ],
-    "attemptedAt": "2026-11-01T07:34:28.261Z"
-  },
-  "lastDelivery": {
-    "eventId": "8b36e03fe88a76febf642808a4a967777b13a514e1c59a72cfbcbc48ef77c8df",
-    "pageIds": [
-      635
-    ],
-    "attemptedAt": "2026-10-31T23:01:16.035Z",
-    "messageName": "projects/adabbook-rajol/messages/2338694093193349759",
-    "acceptedAt": "2026-10-31T23:01:17.840Z"
+    "attemptedAt": "2026-11-01T07:34:28.261Z",
+    "messageName": "projects/adabbook-rajol/messages/6171562037023179415",
+    "acceptedAt": "2026-11-01T07:34:29.952Z"
   }
 }
