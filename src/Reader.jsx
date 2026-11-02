@@ -808,7 +808,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
                   />
                   <p>
                     {hasQuery
-                      ? "لا توجد وصايا تطابق التصفية"
+                      ? "لا توجد صفحات تطابق التصفية"
                       : "احفظ صفحة لتعود إليها هنا"}
                   </p>
                   {hasQuery && (
@@ -886,7 +886,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
               {page.tags.map((tag) => (
                 <button
                   key={tag}
-                  aria-label={`عرض وصايا عن ${tag}`}
+                  aria-label={`عرض صفحات عن ${tag}`}
                   aria-pressed={filter === "topics" && selectedTag === tag}
                   onClick={() => openTopic(tag)}
                 >
