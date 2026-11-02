@@ -391,23 +391,6 @@ button svg,
   color: #a9b69f;
   margin: 4px 0 24px;
 }
-.finished-button {
-  font-family: var(--font-arabic);
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid var(--line);
-  padding: 9px 16px;
-  border-radius: 3px;
-  color: var(--muted);
-}
-.finished-button:hover,
-.finished-button.is-finished {
-  background: var(--active);
-  color: var(--green);
-  border-color: var(--green);
-}
 .page-navigation {
   margin: 43px 0 0;
   padding: 25px 0;

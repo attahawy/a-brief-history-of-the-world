@@ -68,7 +68,6 @@ function Icon({ name, size = 20, ...props }) {
     right: <path d="m9 5 7 7-7 7" />,
     left: <path d="m15 5-7 7 7 7" />,
     close: <path d="m6 6 12 12M6 18 18 6" />,
-    check: <path d="m5 12 4 4L19 6" />,
   };
   return (
     <svg
@@ -214,7 +213,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     [orderedPages],
   );
   const [pageId, setPageId] = useState(initialPageId ?? firstPageId);
-  const [finished, setFinished] = useStored("finished", []);
   const [fontSize, setFontSize] = useStored("font-size", 25);
   const [theme, setTheme] = useStored("theme", "paper");
   const [preferencesOpen, setPreferencesOpen] = useState(false);
@@ -224,7 +222,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
   const page = pagesById.get(pageId);
   const readingTitle = page.readingTitle;
   const index = orderedPages.findIndex((item) => item.pageid === pageId);
-  const isFinished = finished.includes(pageId);
 
   useEffect(() => {
     document.documentElement.dataset.theme =
@@ -362,12 +359,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     return () => document.removeEventListener("keydown", keydown);
   }, [index, navigate, orderedPages, preferencesOpen]);
 
-  const toggleFinished = () =>
-    setFinished((previous) =>
-      previous.includes(pageId)
-        ? previous.filter((id) => id !== pageId)
-        : [...previous, pageId],
-    );
   const html = useMemo(
     () => renderPageMarkdown(page, orderedPages, basePath),
     [page, orderedPages, basePath],
@@ -443,14 +434,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
           />
           <footer className="chapter-footer">
             <span className="end-mark">◆</span>
-            <button
-              className={`finished-button ${isFinished ? "is-finished" : ""}`}
-              aria-pressed={isFinished}
-              onClick={toggleFinished}
-            >
-              <Icon name="check" size={17} />
-              {isFinished ? "تمّت قراءة هذه الصفحة" : "أتممتُ قراءة هذه الصفحة"}
-            </button>
             <nav className="page-navigation" aria-label="التنقل بين الصفحات">
               <a
                 href={
