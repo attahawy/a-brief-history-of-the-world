@@ -81,7 +81,7 @@ export async function verifySite({
       document('.page-navigation a[href]').map((_, node) => document(node).attr('href')).get(),
       [book.pages[index - 1], book.pages[index + 1]].filter(Boolean).map((item) => `${basePath}pages/${item.pageid}/`),
     );
-    assert.equal(document(".chapter-tags").length, page.tags.length ? 1 : 0);
+    assert.equal(document('.chapter-tags, [aria-label="موضوعات الصفحة"], .chapter-meta').length, 0);
     const anchors = document("[id]")
       .map((_, node) => document(node).attr("id"))
       .get();

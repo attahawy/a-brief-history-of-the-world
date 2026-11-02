@@ -267,34 +267,6 @@ button svg,
   margin: 0 0 13px;
   color: var(--ink);
 }
-.chapter-meta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-size: 10px;
-  color: var(--muted);
-}
-.meta-dot {
-  opacity: 0.7;
-}
-.chapter-tags {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 28px;
-  font-family: var(--font-body);
-}
-.chapter-tags span {
-  min-height: 34px;
-  padding: 4px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--green);
-  font-size: 12px;
-  line-height: 1.8;
-}
 .title-ornament {
   display: flex;
   justify-content: center;
@@ -624,10 +596,6 @@ button svg,
     font-size: 34px;
     line-height: 1.6;
     margin-bottom: 16px;
-  }
-  .chapter-meta {
-    gap: 8px;
-    font-size: 9px;
   }
   .title-ornament {
     margin: 24px auto 28px;

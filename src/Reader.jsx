@@ -413,11 +413,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
               الصفحة {number(index + 1)} <span>من {number(totalPages)}</span>
             </p>
             <h1>{readingTitle}</h1>
-            <div className="chapter-meta">
-              <span>{number(page.readingMinutes)} دقائق قراءة</span>
-              <span className="meta-dot">·</span>
-              <span>{number(page.wordCount)} كلمة</span>
-            </div>
           </div>
           <div className="title-ornament">
             <span />
@@ -446,17 +441,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
             }}
             dangerouslySetInnerHTML={{ __html: html }}
           />
-          {page.tags.length > 0 && (
-            <div
-              className="chapter-tags"
-              role="group"
-              aria-label="موضوعات الصفحة"
-            >
-              {page.tags.map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
-            </div>
-          )}
           <footer className="chapter-footer">
             <span className="end-mark">◆</span>
             <button

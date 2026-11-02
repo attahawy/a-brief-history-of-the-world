@@ -162,10 +162,6 @@ test("generation follows edits and removals from the source, with complete prefi
   assert.equal(final(".chapter-heading h1").text(), "عنوان محدّث");
   assert.equal(final(".book-content p").text(), "النص الأخير.");
   assert.equal(final('a[href*="apps.apple.com"], a[href*="play.google.com"]').length, 0);
-  assert.deepEqual(
-    final(".chapter-tags span")
-      .map((_, node) => final(node).text())
-      .get(),
-    ["العلاقات"],
-  );
+  assert.equal(final('.chapter-tags, [aria-label="موضوعات الصفحة"], .chapter-meta').length, 0);
+  assert.deepEqual(JSON.parse(await readFile(source, "utf8")).pages[0].tags, ["العلاقات"]);
 });
