@@ -1,6 +1,6 @@
 export const siteUrl = "https://attahawy.github.io/a-brief-history-of-the-world/";
-export const siteName = "أدب الرجل";
-export const storageNamespace = "a-brief-history-of-the-world";
+export const siteName = "مختصر تاريخ العالم";
+export const storageNamespace = "a-brief-history-of-the-world:history-v1";
 export const authorName = "سامي الطحاوي";
 
 export function pagePath(pageId, basePath = "/") {

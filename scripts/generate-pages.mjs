@@ -109,11 +109,11 @@ export async function generatePages({
     missing("title").text(`الصفحة غير موجودة | ${siteName}`);
     missing('meta[name="description"]').attr(
       "content",
-      "الصفحة المطلوبة غير موجودة في كتاب أدب الرجل.",
+      `الصفحة المطلوبة غير موجودة في كتاب ${siteName}.`,
     );
     missing("head").append('<meta name="robots" content="noindex,follow">');
     missing("#root").html(
-      '<div class="empty-state"><h1>الصفحة غير موجودة</h1><p>يمكنك العودة إلى الكتاب واختيار وصية من الفهرس.</p></div>',
+      '<div class="empty-state"><h1>الصفحة غير موجودة</h1><p>يمكنك العودة إلى الكتاب واختيار صفحة من الفهرس.</p></div>',
     );
     missing("#root .empty-state").append(
       missing('<a class="primary-button">العودة إلى الكتاب</a>').attr(

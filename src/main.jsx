@@ -23,7 +23,7 @@ function showNotFound() {
   createRoot(container).render(
     <div className="empty-state">
       <h1>الصفحة غير موجودة</h1>
-      <p>يمكنك العودة إلى الكتاب واختيار وصية من الفهرس.</p>
+      <p>يمكنك العودة إلى الكتاب واختيار صفحة من الفهرس.</p>
       <a className="primary-button" href={basePath}>
         العودة إلى الكتاب
       </a>

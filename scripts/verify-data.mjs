@@ -19,10 +19,9 @@ let words = 0;
 let links = 0;
 let notes = 0;
 for (const page of book.pages) {
-  // The introduction stays in the reading order without an advice topic.
   assert.ok(
-    page.tags.length || page.pageid === 2,
-    `${page.title}: add topic tags to advice before publishing`,
+    page.tags.length,
+    `${page.title}: add history topic tags before publishing`,
   );
   const doc = load(renderMarkdown(page.markdown));
   assert.ok(page.text.trim(), `${page.title}: text is empty`);

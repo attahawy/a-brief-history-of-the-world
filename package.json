@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "import:pages": "node scripts/import-pages.mjs",
+    "import:pages": "node scripts/import-world-history.mjs",
     "setup:local": "node scripts/setup-local.mjs",
     "verify:data": "node scripts/verify-data.mjs",
     "test": "node --test tests/*.test.mjs",

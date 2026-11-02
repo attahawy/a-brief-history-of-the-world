@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { renderPageMarkdown } from "./lib/markdown.js";
-import { pagePath, pageIdFromUrl, updatePageMetadata, storageNamespace } from "./lib/site.js";
+import { pagePath, pageIdFromUrl, updatePageMetadata, storageNamespace, siteName, authorName } from "./lib/site.js";
 import {
   findMatchRanges,
   normalize,
@@ -578,14 +578,14 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
           onClick={(event) => {
             followPage(event, firstPageId);
           }}
-          aria-label="أدب الرجل، بداية الكتاب"
+          aria-label={`${siteName}، بداية الكتاب`}
         >
           <span>
-            <strong>أدب الرجل</strong>
-            <small>سامي الطحاوي</small>
+            <strong>{siteName}</strong>
+            <small>{authorName}</small>
           </span>
         </a>
-        <span className="header-note">دليل الرجل إلى الحياة</span>
+        <span className="header-note">من القرآن العظيم والحديث الشريف</span>
         <div className="header-actions">
           <button
             className={`save-button ${isBookmarked ? "is-saved" : ""}`}
@@ -881,7 +881,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
             <div
               className="chapter-tags"
               role="group"
-              aria-label="موضوعات الوصية"
+              aria-label="موضوعات الصفحة"
             >
               {page.tags.map((tag) => (
                 <button

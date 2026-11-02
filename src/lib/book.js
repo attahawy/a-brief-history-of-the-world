@@ -58,8 +58,10 @@ export function prepareBook(data) {
     ...book,
     pages: book.pages.map((page) => {
       const source = new URL(book.sourceUrl);
-      source.search = "";
-      source.searchParams.set("title", page.title.replace(/ /g, "_"));
+      if (source.searchParams.has("title")) {
+        source.search = "";
+        source.searchParams.set("title", page.title.replace(/ /g, "_"));
+      }
       return {
         ...page,
         tags: page.tags ?? [],

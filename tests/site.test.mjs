@@ -70,7 +70,7 @@ test("metadata uses the reading title and real text, keeping IDs stable when hea
   const book = prepareBook(fixture());
   const page = book.pages[1];
   const metadata = pageMetadata(page);
-  assert.match(metadata.title, /^عنوان القراءة \| أدب الرجل/);
+  assert.match(metadata.title, /^عنوان القراءة \| مختصر تاريخ العالم/);
   assert.ok(!metadata.description.includes("عنوان القراءة"));
   assert.equal(metadata.structuredData["@graph"][1].headline, "عنوان القراءة");
   assert.deepEqual(metadata.structuredData["@graph"][1].keywords, [
