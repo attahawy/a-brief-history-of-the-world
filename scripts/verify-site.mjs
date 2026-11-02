@@ -55,6 +55,8 @@ export async function verifySite({
     assert.equal(document('link[rel="canonical"]').length, 1);
     assert.equal(document('link[rel="canonical"]').attr("href"), expected.url);
     assert.equal(document(".chapter-heading h1").text(), page.readingTitle);
+    assert.equal(document(".brand small").text(), "من القرآن العظيم والحديث الشريف");
+    assert.equal(document(".header-note").length, 0);
     assert.equal(document("#root").attr("data-page-id"), String(page.pageid));
     assert.equal(document("#root").attr("data-book-digest"), digest);
     const content = load(renderPageMarkdown(page, book.pages, basePath));

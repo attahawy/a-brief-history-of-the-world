@@ -126,11 +126,6 @@ button svg,
   color: var(--muted);
   margin-top: 3px;
 }
-.header-note {
-  font-family: var(--font-arabic);
-  color: var(--muted);
-  font-size: 19px;
-}
 .header-actions {
   display: flex;
   align-items: center;
@@ -510,9 +505,6 @@ button svg,
   }
   .site-header {
     padding-inline: 28px;
-  }
-  .header-note {
-    display: none;
   }
   .brand {
     min-width: 0;

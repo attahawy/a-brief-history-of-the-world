@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { renderPageMarkdown } from "./lib/markdown.js";
-import { pagePath, pageIdFromUrl, updatePageMetadata, storageNamespace, siteName, authorName } from "./lib/site.js";
+import { pagePath, pageIdFromUrl, updatePageMetadata, storageNamespace, siteName } from "./lib/site.js";
 const numberFormatter = new Intl.NumberFormat("ar-EG", {
   numberingSystem: "latn",
 });
@@ -380,10 +380,9 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
         >
           <span>
             <strong>{siteName}</strong>
-            <small>{authorName}</small>
+            <small>من القرآن العظيم والحديث الشريف</small>
           </span>
         </a>
-        <span className="header-note">من القرآن العظيم والحديث الشريف</span>
         <div className="header-actions">
           <button
             className="settings-button"
