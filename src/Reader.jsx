@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { renderPageMarkdown } from "./lib/markdown.js";
-import { pagePath, pageIdFromUrl, updatePageMetadata } from "./lib/site.js";
+import { pagePath, pageIdFromUrl, updatePageMetadata, storageNamespace } from "./lib/site.js";
 import {
   findMatchRanges,
   normalize,
@@ -40,7 +40,7 @@ function HighlightedText({ text, terms }) {
 
 function readStored(key, fallback) {
   try {
-    return JSON.parse(localStorage.getItem(`adabbook:${key}`)) ?? fallback;
+    return JSON.parse(localStorage.getItem(`${storageNamespace}:${key}`)) ?? fallback;
   } catch {
     return fallback;
   }
@@ -56,7 +56,7 @@ function useStored(key, fallback) {
   useEffect(() => {
     if (!loaded) return;
     try {
-      localStorage.setItem(`adabbook:${key}`, JSON.stringify(value));
+      localStorage.setItem(`${storageNamespace}:${key}`, JSON.stringify(value));
     } catch {
       /* Reading remains available when storage is disabled. */
     }
@@ -317,7 +317,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
   }, [theme]);
   useEffect(() => {
     try {
-      localStorage.setItem("adabbook:last-page", JSON.stringify(pageId));
+      localStorage.setItem(`${storageNamespace}:last-page`, JSON.stringify(pageId));
     } catch {}
     updatePageMetadata(page);
   }, [pageId, page]);
@@ -367,7 +367,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
       timer = setTimeout(() => {
         try {
           localStorage.setItem(
-            `adabbook:position:${pageId}`,
+            `${storageNamespace}:position:${pageId}`,
             JSON.stringify(window.scrollY),
           );
         } catch {
@@ -954,29 +954,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
             </nav>
           </footer>
         </div>
-        <footer className="site-footer">
-          <span>حمّل تطبيق أدب الرجل</span>
-          <nav className="app-downloads" aria-label="تحميل التطبيق">
-            <a
-              href="https://apps.apple.com/app/id6768483584"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="حمّل التطبيق من App Store"
-              dir="ltr"
-            >
-              App Store
-            </a>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.rajol.adabbookapp"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="حمّل التطبيق من Google Play"
-              dir="ltr"
-            >
-              Google Play
-            </a>
-          </nav>
-        </footer>
       </main>
       <PreferencesDialog
         open={preferencesOpen}

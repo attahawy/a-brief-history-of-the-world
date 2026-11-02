@@ -23,7 +23,7 @@ export async function generatePages({
     root,
     process.env.GITHUB_PAGES === "true" ? "dist-pages" : "dist",
   ),
-  basePath = "/",
+  basePath = process.env.GITHUB_PAGES === "true" ? new URL(siteUrl).pathname : "/",
 } = {}) {
   const started = performance.now();
   const raw = await readFile(join(root, "data/book.json"), "utf8");

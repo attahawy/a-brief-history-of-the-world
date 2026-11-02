@@ -10,7 +10,7 @@ const githubPages = process.env.GITHUB_PAGES === "true";
 const outputDirectory = githubPages ? "dist-pages" : "dist";
 
 export default defineConfig({
-  base: "/",
+  base: githubPages ? "/a-brief-history-of-the-world/" : "/",
   build: { outDir: outputDirectory },
   plugins: [
     react(),
@@ -22,5 +22,5 @@ export default defineConfig({
       },
     },
   ],
-  server: { allowedHosts: ["adabbook.localhost"] },
+  server: { allowedHosts: ["a-brief-history-of-the-world.localhost"] },
 });

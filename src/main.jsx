@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import Reader, { ErrorMessage } from "./Reader.jsx";
 import { prepareBook } from "./lib/book.js";
-import { pageIdFromUrl, pagePath, siteName } from "./lib/site.js";
+import { pageIdFromUrl, pagePath, siteName, storageNamespace } from "./lib/site.js";
 import "./fonts.css";
 import "./styles.css";
 
@@ -84,7 +84,7 @@ async function startReader() {
   let pageId = requested;
   if (home && !url.searchParams.has("page")) {
     try {
-      pageId = JSON.parse(localStorage.getItem("adabbook:last-page"));
+      pageId = JSON.parse(localStorage.getItem(`${storageNamespace}:last-page`));
     } catch {
       /* Start with the introduction when saved progress is invalid. */
     }
