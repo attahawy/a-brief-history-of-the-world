@@ -8,36 +8,10 @@ import React, {
 } from "react";
 import { renderPageMarkdown } from "./lib/markdown.js";
 import { pagePath, pageIdFromUrl, updatePageMetadata, storageNamespace, siteName, authorName } from "./lib/site.js";
-import {
-  findMatchRanges,
-  normalize,
-  searchExcerpt,
-  searchTerms,
-} from "./lib/search.js";
-
 const numberFormatter = new Intl.NumberFormat("ar-EG", {
   numberingSystem: "latn",
 });
 const number = (value) => numberFormatter.format(value);
-const contentsTabs = [
-  ["all", "جميع الصفحات"],
-  ["topics", "الموضوعات"],
-  ["saved", "المحفوظة"],
-];
-function HighlightedText({ text, terms }) {
-  const ranges = findMatchRanges(text, terms);
-  if (!ranges.length) return text;
-  const parts = [];
-  let cursor = 0;
-  for (const [start, end] of ranges) {
-    parts.push(text.slice(cursor, start));
-    parts.push(<mark key={`${start}-${end}`}>{text.slice(start, end)}</mark>);
-    cursor = end;
-  }
-  parts.push(text.slice(cursor));
-  return parts;
-}
-
 function readStored(key, fallback) {
   try {
     return JSON.parse(localStorage.getItem(`${storageNamespace}:${key}`)) ?? fallback;
@@ -78,7 +52,6 @@ function Icon({ name, size = 20, ...props }) {
         <path d="m16 16 5 5" />
       </>
     ),
-    bookmark: <path d="M6 3h12v18l-6-4-6 4V3Z" />,
     moon: <path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z" />,
     sun: (
       <>
@@ -94,7 +67,6 @@ function Icon({ name, size = 20, ...props }) {
     ),
     right: <path d="m9 5 7 7-7 7" />,
     left: <path d="m15 5-7 7 7 7" />,
-    menu: <path d="M4 6h16M4 12h16M4 18h16" />,
     close: <path d="m6 6 12 12M6 18 18 6" />,
     check: <path d="m5 12 4 4L19 6" />,
   };
@@ -242,74 +214,17 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     [orderedPages],
   );
   const [pageId, setPageId] = useState(initialPageId ?? firstPageId);
-  const [bookmarks, setBookmarks] = useStored("bookmarks", []);
   const [finished, setFinished] = useStored("finished", []);
-  const savedCount = bookmarks.filter((id) => pagesById.has(id)).length;
-  const finishedCount = finished.filter((id) => pagesById.has(id)).length;
   const [fontSize, setFontSize] = useStored("font-size", 25);
   const [theme, setTheme] = useStored("theme", "paper");
-  const [query, setQuery] = useState("");
-  const [selectedTag, setSelectedTag] = useState("");
-  const topicTags = useMemo(() => {
-    const counts = new Map();
-    for (const page of orderedPages)
-      for (const tag of page.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-    return [...counts].sort(([a], [b]) => a.localeCompare(b, "ar"));
-  }, [orderedPages]);
-  const searchIndex = useMemo(
-    () =>
-      new Map(
-        orderedPages.map((page) => [
-          page.pageid,
-          {
-            text: page.text,
-            normalized: normalize(
-              [page.title, page.readingTitle, page.text, ...page.tags].join(
-                " ",
-              ),
-            ),
-          },
-        ]),
-      ),
-    [orderedPages],
-  );
-  const hasQuery = query.trim().length > 0;
-  const [filter, setFilter] = useState("all");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const articleRef = useRef(null);
-  const sidebarRef = useRef(null);
-  const menuButtonRef = useRef(null);
-  const topicsBackRef = useRef(null);
   const startAtTopRef = useRef(false);
   const page = pagesById.get(pageId);
   const readingTitle = page.readingTitle;
   const index = orderedPages.findIndex((item) => item.pageid === pageId);
-  const isBookmarked = bookmarks.includes(pageId);
   const isFinished = finished.includes(pageId);
-
-  const selectContentsTab = (next) => {
-    if (next !== filter && (next === "topics" || filter === "topics"))
-      setQuery("");
-    setFilter(next);
-  };
-  const openTopic = (tag) => {
-    setSelectedTag(tag);
-    setQuery("");
-    setFilter("topics");
-    setSidebarOpen(true);
-    requestAnimationFrame(() =>
-      topicsBackRef.current?.focus({ preventScroll: true }),
-    );
-  };
-  const showAllTopics = () => {
-    setSelectedTag("");
-    setQuery("");
-    requestAnimationFrame(() =>
-      sidebarRef.current?.querySelector(".topic-link")?.focus(),
-    );
-  };
 
   useEffect(() => {
     document.documentElement.dataset.theme =
@@ -384,62 +299,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     };
   }, [page, pageId]);
 
-  useEffect(() => {
-    if (!sidebarOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    if (matchMedia("(max-width: 900px)").matches)
-      document.body.style.overflow = "hidden";
-    sidebarRef.current?.querySelector("input")?.focus();
-    const keydown = (event) => {
-      if (event.key === "Escape") {
-        setSidebarOpen(false);
-        menuButtonRef.current?.focus();
-      }
-      if (event.key === "Tab" && matchMedia("(max-width: 900px)").matches) {
-        const controls = [
-          ...sidebarRef.current.querySelectorAll(
-            "button, input, a, [tabindex]",
-          ),
-        ].filter((node) => !node.disabled && node.tabIndex >= 0);
-        const first = controls[0],
-          last = controls.at(-1);
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last?.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first?.focus();
-        }
-      }
-    };
-    document.addEventListener("keydown", keydown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", keydown);
-    };
-  }, [sidebarOpen]);
-
-  useEffect(() => {
-    const keydown = (event) => {
-      if (
-        preferencesOpen ||
-        event.defaultPrevented ||
-        event.key !== "/" ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.altKey ||
-        /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) ||
-        event.target.isContentEditable
-      )
-        return;
-      event.preventDefault();
-      setSidebarOpen(true);
-      sidebarRef.current?.querySelector("input")?.focus();
-    };
-    document.addEventListener("keydown", keydown);
-    return () => document.removeEventListener("keydown", keydown);
-  }, [preferencesOpen]);
-
   const navigate = useCallback(
     (id, anchor = "") => {
       if (!pagesById.has(id)) return;
@@ -459,7 +318,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
         setPageId(id);
         setProgress(0);
       }
-      setSidebarOpen(false);
       document.getElementById("reading")?.focus({ preventScroll: true });
     },
     [pagesById, pageId, basePath],
@@ -504,63 +362,12 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     return () => document.removeEventListener("keydown", keydown);
   }, [index, navigate, orderedPages, preferencesOpen]);
 
-  const toggleSaved = () =>
-    setBookmarks((previous) =>
-      previous.includes(pageId)
-        ? previous.filter((id) => id !== pageId)
-        : [...previous, pageId],
-    );
   const toggleFinished = () =>
     setFinished((previous) =>
       previous.includes(pageId)
         ? previous.filter((id) => id !== pageId)
         : [...previous, pageId],
     );
-  const terms = useMemo(() => searchTerms(query), [query]);
-  const showTopicIndex = filter === "topics" && !selectedTag;
-  const visibleTopics = useMemo(
-    () =>
-      topicTags.filter(([tag]) =>
-        terms.every((term) => normalize(tag).includes(term)),
-      ),
-    [topicTags, terms],
-  );
-  const filteredPages = useMemo(
-    () =>
-      orderedPages.filter((item) => {
-        if (
-          filter === "topics" &&
-          selectedTag &&
-          !item.tags.includes(selectedTag)
-        )
-          return false;
-        if (filter === "saved" && !bookmarks.includes(item.pageid))
-          return false;
-        if (!terms.length) return true;
-        const haystack = searchIndex.get(item.pageid).normalized;
-        return terms.every((term) => haystack.includes(term));
-      }),
-    [searchIndex, orderedPages, selectedTag, filter, bookmarks, terms],
-  );
-  useEffect(() => {
-    sidebarRef.current?.querySelector(".contents-list")?.scrollTo(0, 0);
-  }, [query, selectedTag, filter]);
-  const excerpts = useMemo(() => {
-    if (!hasQuery) return new Map();
-    return new Map(
-      filteredPages.map((item) => {
-        const title = normalize(item.readingTitle);
-        const bodyTerms = terms.filter((term) => !title.includes(term));
-        return [
-          item.pageid,
-          bodyTerms.length
-            ? searchExcerpt(searchIndex.get(item.pageid).text, bodyTerms)
-            : "",
-        ];
-      }),
-    );
-  }, [hasQuery, searchIndex, filteredPages, terms]);
-
   const html = useMemo(
     () => renderPageMarkdown(page, orderedPages, basePath),
     [page, orderedPages, basePath],
@@ -588,254 +395,16 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
         <span className="header-note">من القرآن العظيم والحديث الشريف</span>
         <div className="header-actions">
           <button
-            className={`save-button ${isBookmarked ? "is-saved" : ""}`}
-            aria-label={isBookmarked ? "إزالة من المحفوظة" : "حفظ الصفحة"}
-            aria-pressed={isBookmarked}
-            onClick={toggleSaved}
-          >
-            <Icon name="bookmark" />
-          </button>
-          <button
             className="settings-button"
-            onClick={() => {
-              setSidebarOpen(false);
-              setPreferencesOpen(true);
-            }}
+            onClick={() => setPreferencesOpen(true)}
             aria-label="إعدادات القراءة"
             aria-haspopup="dialog"
             aria-controls="reader-preferences"
           >
             <Icon name="settings" />
           </button>
-          <button
-            ref={menuButtonRef}
-            className="contents-toggle"
-            aria-label="الفهرس"
-            aria-expanded={sidebarOpen}
-            aria-controls="book-contents"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            <Icon name="menu" />
-          </button>
         </div>
       </header>
-
-      {sidebarOpen && (
-        <button
-          className="sidebar-backdrop"
-          aria-label="إغلاق الفهرس"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      <aside
-        ref={sidebarRef}
-        id="book-contents"
-        className={`sidebar ${sidebarOpen ? "is-open" : ""}`}
-        aria-label="فهرس الكتاب"
-      >
-        <div className="sidebar-top">
-          <div className="sidebar-heading">
-            <h2>فهرس الكتاب</h2>
-            <span>{number(totalPages)} صفحة</span>
-            <button
-              className="close-contents icon-button"
-              aria-label="إغلاق الفهرس"
-              onClick={() => {
-                setSidebarOpen(false);
-                menuButtonRef.current?.focus();
-              }}
-            >
-              <Icon name="close" />
-            </button>
-          </div>
-          <label className="search-field">
-            <Icon name="search" size={18} />
-            <input
-              type="search"
-              placeholder={
-                showTopicIndex ? "ابحث عن موضوع…" : "ابحث في النصوص والوسوم…"
-              }
-              aria-label="ابحث في الكتاب"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            <kbd>/</kbd>
-          </label>
-          <div
-            className="contents-tabs"
-            role="tablist"
-            aria-label="عرض الصفحات"
-            onKeyDown={(event) => {
-              if (
-                event.defaultPrevented ||
-                event.altKey ||
-                event.ctrlKey ||
-                event.metaKey ||
-                event.shiftKey ||
-                !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)
-              )
-                return;
-              const buttons = [
-                ...event.currentTarget.querySelectorAll('[role="tab"]'),
-              ];
-              const current = buttons.indexOf(
-                event.target.closest('[role="tab"]'),
-              );
-              if (current < 0) return;
-              event.preventDefault();
-              const step = event.key === "ArrowLeft" ? 1 : -1;
-              let next =
-                (current + step + contentsTabs.length) % contentsTabs.length;
-              if (event.key === "Home") next = 0;
-              else if (event.key === "End") next = contentsTabs.length - 1;
-              selectContentsTab(contentsTabs[next][0]);
-              buttons[next]?.focus();
-            }}
-          >
-            {contentsTabs.map(([key, label]) => (
-              <button
-                key={key}
-                id={`contents-tab-${key}`}
-                role="tab"
-                className={filter === key ? "selected" : ""}
-                aria-selected={filter === key}
-                aria-controls="book-contents-panel"
-                tabIndex={filter === key ? 0 : -1}
-                onClick={() => selectContentsTab(key)}
-              >
-                {label} {key === "saved" && <span>{number(savedCount)}</span>}
-              </button>
-            ))}
-          </div>
-          {filter === "topics" && selectedTag && (
-            <div className="topic-pages-heading">
-              <button
-                ref={topicsBackRef}
-                className="topics-back"
-                onClick={showAllTopics}
-              >
-                العودة إلى جميع الموضوعات
-              </button>
-              <div className="topic-pages-title">
-                <h3>{selectedTag}</h3>
-                <span role="status">{number(filteredPages.length)} صفحة</span>
-              </div>
-            </div>
-          )}
-        </div>
-        <div
-          className="contents-list"
-          id="book-contents-panel"
-          role="tabpanel"
-          aria-labelledby={`contents-tab-${filter}`}
-          tabIndex={0}
-        >
-          {showTopicIndex ? (
-            <>
-              <p className="search-summary" role="status">
-                {number(visibleTopics.length)} موضوعًا
-              </p>
-              {visibleTopics.map(([tag, count]) => (
-                <button
-                  key={tag}
-                  className="topic-link"
-                  onClick={() => openTopic(tag)}
-                >
-                  <span className="topic-name">
-                    <HighlightedText text={tag} terms={terms} />
-                  </span>
-                  <span className="topic-count">{number(count)} صفحة</span>
-                </button>
-              ))}
-              {!visibleTopics.length && (
-                <div className="list-empty">
-                  <p>لا توجد موضوعات تطابق بحثك</p>
-                  <button onClick={() => setQuery("")}>مسح البحث</button>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              {hasQuery && (
-                <p className="search-summary" role="status">
-                  {`${number(filteredPages.length)} نتيجة في العناوين والنصوص والوسوم`}
-                </p>
-              )}
-              {filteredPages.map((item) => (
-                <a
-                  key={item.pageid}
-                  className={`chapter-link ${item.pageid === pageId ? "active" : ""} ${hasQuery ? "search-result" : ""}`}
-                  aria-current={item.pageid === pageId ? "page" : undefined}
-                  href={pagePath(item.pageid, basePath)}
-                  onClick={(event) => followPage(event, item.pageid)}
-                >
-                  <span className="chapter-number">
-                    {number(orderedPages.indexOf(item) + 1).padStart(2, "0")}
-                  </span>
-                  <span className="chapter-copy">
-                    <span className="chapter-name">
-                      <HighlightedText text={item.readingTitle} terms={terms} />
-                    </span>
-                    {item.tags.length > 0 && (
-                      <span className="chapter-topics">
-                        <HighlightedText
-                          text={item.tags.join(" · ")}
-                          terms={terms}
-                        />
-                      </span>
-                    )}
-                    {excerpts.get(item.pageid) && (
-                      <span className="search-excerpt">
-                        <HighlightedText
-                          text={excerpts.get(item.pageid)}
-                          terms={terms}
-                        />
-                      </span>
-                    )}
-                  </span>
-                  {finished.includes(item.pageid) ? (
-                    <Icon name="check" size={14} />
-                  ) : bookmarks.includes(item.pageid) ? (
-                    <Icon name="bookmark" size={14} />
-                  ) : null}
-                </a>
-              ))}
-              {!filteredPages.length && (
-                <div className="list-empty">
-                  <Icon
-                    name={filter === "saved" ? "bookmark" : "search"}
-                    size={26}
-                  />
-                  <p>
-                    {hasQuery
-                      ? "لا توجد صفحات تطابق التصفية"
-                      : "احفظ صفحة لتعود إليها هنا"}
-                  </p>
-                  {hasQuery && (
-                    <button onClick={() => setQuery("")}>مسح البحث</button>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-        <div className="reading-status">
-          <div>
-            <span>رحلتك في الكتاب</span>
-            <strong>
-              {number(finishedCount)} / {number(totalPages)}
-            </strong>
-          </div>
-          <div className="status-track">
-            <span
-              style={{
-                width: `${(finishedCount / totalPages) * 100}%`,
-              }}
-            />
-          </div>
-          <small>موضع قراءتك محفوظ تلقائيًا</small>
-        </div>
-      </aside>
 
       <main className="reader-main" id="reading" tabIndex={-1}>
         <div className="book-page" key={pageId}>
@@ -884,14 +453,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
               aria-label="موضوعات الصفحة"
             >
               {page.tags.map((tag) => (
-                <button
-                  key={tag}
-                  aria-label={`عرض صفحات عن ${tag}`}
-                  aria-pressed={filter === "topics" && selectedTag === tag}
-                  onClick={() => openTopic(tag)}
-                >
-                  {tag}
-                </button>
+                <span key={tag}>{tag}</span>
               ))}
             </div>
           )}

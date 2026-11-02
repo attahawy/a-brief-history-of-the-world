@@ -140,7 +140,8 @@ test("generation follows edits and removals from the source, with complete prefi
     await readFile(join(root, "dist/pages/11/index.html"), "utf8"),
   );
   assert.equal(first(".book-content p").first().text(), "نص مهم وآمن.");
-  assert.equal(first('a.chapter-link[href="/adabbook/pages/10/"]').length, 1);
+  assert.equal(first('.page-navigation a[href="/adabbook/pages/10/"]').length, 1);
+  assert.equal(first('aside, input[type="search"], .contents-toggle, .save-button').length, 0);
   raw.pages = [
     {
       ...raw.pages[1],
@@ -162,7 +163,7 @@ test("generation follows edits and removals from the source, with complete prefi
   assert.equal(final(".book-content p").text(), "النص الأخير.");
   assert.equal(final('a[href*="apps.apple.com"], a[href*="play.google.com"]').length, 0);
   assert.deepEqual(
-    final(".chapter-tags button")
+    final(".chapter-tags span")
       .map((_, node) => final(node).text())
       .get(),
     ["العلاقات"],

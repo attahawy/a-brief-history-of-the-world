@@ -75,7 +75,12 @@ export async function verifySite({
       expected.structuredData,
     );
     assert.equal(document('meta[name="robots"]').attr("content"), undefined);
-    assert.equal(document("a.chapter-link[href]").length, book.pages.length);
+    assert.equal(document('aside, input[type="search"], .contents-toggle, .save-button').length, 0);
+    const index = book.pages.indexOf(page);
+    assert.deepEqual(
+      document('.page-navigation a[href]').map((_, node) => document(node).attr('href')).get(),
+      [book.pages[index - 1], book.pages[index + 1]].filter(Boolean).map((item) => `${basePath}pages/${item.pageid}/`),
+    );
     assert.equal(document(".chapter-tags").length, page.tags.length ? 1 : 0);
     const anchors = document("[id]")
       .map((_, node) => document(node).attr("id"))
