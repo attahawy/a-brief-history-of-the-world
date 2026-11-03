@@ -35,7 +35,7 @@ function useStored(key, fallback) {
       /* Reading remains available when storage is disabled. */
     }
   }, [key, value, loaded]);
-  return [value, setValue];
+  return [value, setValue, loaded];
 }
 
 function Icon({ name, size = 20, ...props }) {
@@ -214,7 +214,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
   );
   const [pageId, setPageId] = useState(initialPageId ?? firstPageId);
   const [fontSize, setFontSize] = useStored("font-size", 25);
-  const [theme, setTheme] = useStored("theme", "paper");
+  const [theme, setTheme, themeLoaded] = useStored("theme", "paper");
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const articleRef = useRef(null);
@@ -224,9 +224,12 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
   const index = orderedPages.findIndex((item) => item.pageid === pageId);
 
   useEffect(() => {
+    if (!themeLoaded) return;
     document.documentElement.dataset.theme =
       theme === "night" ? "night" : "paper";
-  }, [theme]);
+    document.querySelector('meta[name="theme-color"]').content =
+      theme === "night" ? "#1c2522" : "#f9f7f2";
+  }, [theme, themeLoaded]);
   useEffect(() => {
     try {
       localStorage.setItem(`${storageNamespace}:last-page`, JSON.stringify(pageId));

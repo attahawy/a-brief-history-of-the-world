@@ -3,7 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f5f2eb" />
+    <meta name="theme-color" content="#f9f7f2" />
+    <style>
+      :root { background: #f9f7f2; color: #273b35; color-scheme: light; }
+      :root[data-theme="night"] { background: #1c2522; color: #e6e8dc; color-scheme: dark; }
+    </style>
+    <script>
+      (() => {
+        let theme = "paper";
+        try {
+          if (JSON.parse(localStorage.getItem("a-brief-history-of-the-world:history-v1:theme")) === "night")
+            theme = "night";
+        } catch {}
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]').content =
+          theme === "night" ? "#1c2522" : "#f9f7f2";
+      })();
+    </script>
     <meta
       name="description"
       content="اقرأ مختصر تاريخ العالم من القرآن العظيم والحديث الشريف، وابحث في صفحاته واحتفظ بموضع قراءتك."

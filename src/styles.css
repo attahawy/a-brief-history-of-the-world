@@ -293,6 +293,11 @@ button svg,
 .book-content p {
   margin: 0 0 1.2em;
 }
+.book-content .quran-verse {
+  font-family: "Amiri Quran", serif;
+  font-weight: 400;
+  line-height: 2.4;
+}
 .book-content h1,
 .book-content h2,
 .book-content h3,

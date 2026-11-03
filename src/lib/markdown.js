@@ -18,6 +18,37 @@ const inlineText = (tokens = []) =>
     .join("");
 const compactText = (text) => text.replace(/\s+/g, " ").trim();
 
+// Style only the quoted verse, including quotations inside a hadith.
+markdown.core.ruler.after("inline", "quran-verses", (state) => {
+  for (const block of state.tokens) {
+    if (!block.children) continue;
+    block.children = block.children.flatMap((token) => {
+      if (token.type !== "text") return [token];
+      const matches = [...token.content.matchAll(/﴿[^﴿﴾]+﴾/gu)];
+      if (!matches.length) return [token];
+      const tokens = [];
+      const text = (content) => {
+        if (!content) return;
+        const part = new token.constructor("text", "", 0);
+        part.content = content;
+        tokens.push(part);
+      };
+      let start = 0;
+      for (const match of matches) {
+        text(token.content.slice(start, match.index));
+        const open = new token.constructor("quran_open", "span", 1);
+        open.attrSet("class", "quran-verse");
+        tokens.push(open);
+        text(match[0]);
+        tokens.push(new token.constructor("quran_close", "span", -1));
+        start = match.index + match[0].length;
+      }
+      text(token.content.slice(start));
+      return tokens;
+    });
+  }
+});
+
 // Keep both generations of MediaWiki fragment URLs working without saving
 // their duplicate anchor markup in every page.
 markdown.core.ruler.push("book-heading-anchors", (state) => {

@@ -119,6 +119,17 @@ test("raw HTML and executable links cannot become active markup", () => {
   assert.ok(doc("body").text().includes("<script>"));
 });
 
+test("Quran quotations use their own font span without changing verses, references or surrounding prose", () => {
+  const verse = "﴿وَالشَّمْسُ تَجْرِي لِمُسْتَقَرٍّ لَهَا﴾";
+  const text = `قال: ${verse} [يس: 38]. ثم ${verse} رواه الشيخان.`;
+  const doc = load(renderMarkdown(text));
+  assert.deepEqual(doc(".quran-verse").map((_, node) => doc(node).text()).get(), [verse, verse]);
+  assert.equal(doc("p").text(), text);
+  assert.equal(markdownDetails(text).text, text);
+  assert.equal(doc(".quran-verse a, .quran-verse script").length, 0);
+  assert.equal(load(renderMarkdown("حديث بلا آيات، و﴿قوس غير مكتمل"))(".quran-verse").length, 0);
+});
+
 test("imports parsed wiki content as portable Markdown with footnotes and reader links", () => {
   const converted = convertWikiPage(
     {
