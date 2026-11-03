@@ -8,7 +8,10 @@ import { filterBookPages } from "./lib/book-pages.mjs";
 
 const root = fileURLToPath(new URL("../data/", import.meta.url));
 const raw = await readFile(`${root}book.json`, "utf8");
-assert.doesNotMatch(raw, /[٠-٩۰-۹]/, "Use 0–9 in the saved JSON");
+// Quran verse-end markers intentionally use Arabic-Indic Unicode digits.
+// Keep the rest of the JSON in ASCII digits for stable metadata and IDs.
+const withoutVerseNumbers = raw.replace(/۝[٠-٩]+/gu, "۝");
+assert.doesNotMatch(withoutVerseNumbers, /[٠-٩۰-۹]/u, "Use 0–9 outside Quran verse markers");
 assert.deepEqual(await readdir(root), ["book.json"], "Keep one book data file");
 const book = prepareBook(JSON.parse(raw));
 const filtered = filterBookPages(book.pages);
