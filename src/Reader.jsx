@@ -197,7 +197,7 @@ function PreferencesDialog({
         </div>
         <p id="preferences-help" className="preferences-help">
           أثناء القراءة، استخدم السهم الأيمن في لوحة المفاتيح للانتقال إلى
-          الصفحة السابقة، والسهم الأيسر للانتقال إلى الصفحة التالية.
+          الفصل السابق، والسهم الأيسر للانتقال إلى الفصل التالي.
         </p>
       </div>
     </dialog>
@@ -403,7 +403,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
         <div className="book-page" key={pageId}>
           <div className="chapter-heading">
             <p className="chapter-kicker">
-              الصفحة {number(index + 1)} <span>من {number(totalPages)}</span>
+              الفصل {number(index + 1)} <span>من {number(totalPages)}</span>
             </p>
             <h1>{readingTitle}</h1>
           </div>
@@ -436,7 +436,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
           />
           <footer className="chapter-footer">
             <span className="end-mark">◆</span>
-            <nav className="page-navigation" aria-label="التنقل بين الصفحات">
+            <nav className="page-navigation" aria-label="التنقل بين الفصول">
               <a
                 href={
                   index
@@ -452,7 +452,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
               >
                 <Icon name="right" size={20} />
                 <span>
-                  <small>الصفحة السابقة</small>
+                  <small>الفصل السابق</small>
                   <strong>
                     {index
                       ? orderedPages[index - 1].readingTitle
@@ -475,7 +475,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
                 }
               >
                 <span>
-                  <small>الصفحة التالية</small>
+                  <small>الفصل التالي</small>
                   <strong>
                     {orderedPages[index + 1]?.readingTitle ?? "نهاية الكتاب"}
                   </strong>
