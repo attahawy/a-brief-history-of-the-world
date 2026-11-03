@@ -295,6 +295,7 @@ button svg,
 }
 .book-content .quran-verse {
   font-family: "Amiri Quran", serif;
+  font-style: normal;
   font-weight: 400;
   line-height: 2.4;
 }
