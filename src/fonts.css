@@ -1,4 +1,14 @@
 @font-face {
+  font-family: "Uthmanic Hafs";
+  src: url("./assets/fonts/uthmanic-hafs-v3.ttf") format("truetype");
+  /* Hafs maps these two legacy marks to placeholder circles; Amiri handles them. */
+  unicode-range: U+0000-06DE, U+06E0-06E9, U+06EB-10FFFF;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Amiri Quran";
   src: url("./assets/fonts/amiri-quran-regular.ttf") format("truetype");
   font-style: normal;
