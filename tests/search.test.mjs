@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  createChapterSearchIndex,
+  searchChapters,
+  normalize,
   findMatchRanges,
   searchExcerpt,
   searchTerms,
@@ -50,4 +53,29 @@ test("excerpts keep a body match away from the beginning in context", () => {
   assert.ok(excerpt.includes("استثمار ماله"));
   assert.ok(excerpt.length < 160);
   assert.deepEqual(hits(excerpt, "استثمار ماله"), ["استثمار", "ماله"]);
+});
+
+
+test("chapter search finds all query terms across headings and body text in book order", () => {
+  const pages = [
+    { pageid: 51, readingTitle: "الهِجرة إلى المدينة", text: "خبر سُراقة في الطريق." },
+    { pageid: 8, readingTitle: "الهجرة", text: "المؤاخاة بين المهاجرين والأنصار." },
+    { pageid: 19, readingTitle: "خبر سُراقة", text: "من أحداث الهجرة إلى المدينة." },
+  ];
+  const index = createChapterSearchIndex(pages);
+  assert.deepEqual(searchChapters(index, "الهجرة سراقة").map((item) => item.page.pageid), [51, 19]);
+  assert.deepEqual(searchChapters(index, "الهجرة سراقة").map((item) => item.number), [1, 3]);
+  assert.deepEqual(searchChapters(index, "كلمة مفقودة"), []);
+  assert.deepEqual(searchChapters(index, "  "), []);
+  assert.deepEqual(pages.map((page) => Object.keys(page)), pages.map(() => ["pageid", "readingTitle", "text"]));
+});
+
+test("Quran search ignores Uthmani annotation marks and preserves the original text in highlights", () => {
+  const verse = "وَٱللَّهُ بِمَا تَعۡمَلُونَ بَصِيرٌ";
+  assert.equal(normalize(verse), "والله بما تعملون بصير");
+  const index = createChapterSearchIndex([
+    { pageid: 1, readingTitle: "الأحزاب", text: verse },
+  ]);
+  assert.equal(searchChapters(index, "الله تعملون").length, 1);
+  assert.deepEqual(hits(verse, "تعملون"), ["تَعۡمَلُونَ"]);
 });

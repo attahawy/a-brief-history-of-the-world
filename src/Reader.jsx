@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useDeferredValue,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -7,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { renderPageMarkdown } from "./lib/markdown.js";
+import { createChapterSearchIndex, searchChapters, searchTerms, searchExcerpt, findMatchRanges } from "./lib/search.js";
 import { pagePath, pageIdFromUrl, updatePageMetadata, storageNamespace, siteName } from "./lib/site.js";
 const numberFormatter = new Intl.NumberFormat("ar-EG", {
   numberingSystem: "latn",
@@ -50,6 +52,12 @@ function Icon({ name, size = 20, ...props }) {
       <>
         <circle cx="10.5" cy="10.5" r="6.5" />
         <path d="m16 16 5 5" />
+      </>
+    ),
+    contents: (
+      <>
+        <path d="M9 6h12M9 12h12M9 18h12" />
+        <path d="M3 6h1M3 12h1M3 18h1" />
       </>
     ),
     moon: <path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z" />,
@@ -204,6 +212,145 @@ function PreferencesDialog({
   );
 }
 
+function HighlightedText({ text, terms }) {
+  const ranges = findMatchRanges(text, terms);
+  const parts = [];
+  let offset = 0;
+  for (const [start, end] of ranges) {
+    parts.push(text.slice(offset, start));
+    parts.push(<mark key={start}>{text.slice(start, end)}</mark>);
+    offset = end;
+  }
+  parts.push(text.slice(offset));
+  return <>{parts}</>;
+}
+
+function BookNavigationDialog({ mode, onClose, pages, pageId, basePath, onNavigate }) {
+  const dialogRef = useRef(null);
+  const inputRef = useRef(null);
+  const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const searching = mode === "search";
+  const terms = useMemo(() => searchTerms(deferredQuery), [deferredQuery]);
+  const entries = useMemo(
+    () => pages.map((page, index) => ({ page, number: index + 1 })),
+    [pages],
+  );
+  const searchIndex = useMemo(
+    () => searching ? createChapterSearchIndex(pages) : [],
+    [searching, pages],
+  );
+  const results = useMemo(
+    () => searching ? searchChapters(searchIndex, deferredQuery) : entries,
+    [searching, searchIndex, deferredQuery, entries],
+  );
+
+  useEffect(() => {
+    if (!mode) return;
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = "hidden";
+    if (mode === "search") {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    } else {
+      const current = dialog.querySelector('[aria-current="page"]');
+      current?.focus({ preventScroll: true });
+      current?.scrollIntoView({ block: "center" });
+    }
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mode]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      id="reader-navigation"
+      className="navigation-dialog"
+      aria-labelledby="navigation-title"
+      aria-describedby="navigation-status"
+      onClose={onClose}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) dialogRef.current.close();
+      }}
+    >
+      <div className="navigation-panel">
+        <div className="navigation-heading">
+          <h2 id="navigation-title">{searching ? "البحث في الكتاب" : "فهرس الكتاب"}</h2>
+          <button
+            type="button"
+            className="icon-button close-preferences"
+            aria-label={searching ? "إغلاق البحث" : "إغلاق الفهرس"}
+            onClick={() => dialogRef.current.close()}
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+        {searching && (
+          <label className="book-search-field">
+            <span className="search-label">ابحث في عناوين الفصول ونصوصها</span>
+            <span className="book-search-input">
+              <Icon name="search" />
+              <input
+                ref={inputRef}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="اكتب كلمة أو أكثر…"
+                autoComplete="off"
+                spellCheck={false}
+                maxLength={200}
+                aria-controls="navigation-results"
+              />
+            </span>
+          </label>
+        )}
+        <p id="navigation-status" className="navigation-status" role="status" aria-live="polite" aria-atomic="true">
+          {searching
+            ? terms.length
+              ? results.length
+                ? "نتائج في " + number(results.length) + " من الفصول"
+                : "لم نعثر على نتائج. جرّب كلمات أخرى."
+              : "ابحث بكلمة أو أكثر، مع التشكيل أو بدونه."
+            : number(pages.length) + " فصلًا — اختر فصلًا للانتقال إليه"}
+        </p>
+        <ol
+          id="navigation-results"
+          className="navigation-results"
+          aria-label={searching ? "نتائج البحث" : "فصول الكتاب"}
+          aria-busy={searching && query !== deferredQuery}
+        >
+          {results.map(({ page, number: chapterNumber }) => (
+            <li key={page.pageid}>
+              <a
+                href={pagePath(page.pageid, basePath)}
+                aria-current={page.pageid === pageId ? "page" : undefined}
+                onClick={(event) => {
+                  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                  event.preventDefault();
+                  dialogRef.current.close();
+                  onNavigate(page.pageid);
+                }}
+              >
+                <span className="contents-number" aria-label={"الفصل " + number(chapterNumber)}>{number(chapterNumber)}</span>
+                <span className="navigation-result-copy">
+                  <strong><HighlightedText text={page.readingTitle} terms={searching ? terms : []} /></strong>
+                  {searching && (
+                    <span className="search-excerpt"><HighlightedText text={searchExcerpt(page.text, terms)} terms={terms} /></span>
+                  )}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </dialog>
+  );
+}
+
 export default function Reader({ book, initialPageId, basePath = "/" }) {
   const orderedPages = book.pages;
   const totalPages = orderedPages.length;
@@ -216,6 +363,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
   const [fontSize, setFontSize] = useStored("font-size", 25);
   const [theme, setTheme, themeLoaded] = useStored("theme", "paper");
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [navigationMode, setNavigationMode] = useState(null);
   const [progress, setProgress] = useState(0);
   const articleRef = useRef(null);
   const startAtTopRef = useRef(false);
@@ -340,6 +488,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     const keydown = (event) => {
       if (
         preferencesOpen ||
+        navigationMode ||
         !["ArrowRight", "ArrowLeft"].includes(event.key) ||
         event.defaultPrevented ||
         event.repeat ||
@@ -360,7 +509,7 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     };
     document.addEventListener("keydown", keydown);
     return () => document.removeEventListener("keydown", keydown);
-  }, [index, navigate, orderedPages, preferencesOpen]);
+  }, [index, navigate, orderedPages, preferencesOpen, navigationMode]);
 
   const html = useMemo(
     () => renderPageMarkdown(page, orderedPages, basePath),
@@ -387,6 +536,30 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
           </span>
         </a>
         <div className="header-actions">
+          <button
+            type="button"
+            className="navigation-button"
+            onClick={() => setNavigationMode("search")}
+            aria-label="البحث في الكتاب"
+            title="البحث"
+            aria-haspopup="dialog"
+            aria-controls="reader-navigation"
+            aria-expanded={navigationMode === "search"}
+          >
+            <Icon name="search" />
+          </button>
+          <button
+            type="button"
+            className="navigation-button"
+            onClick={() => setNavigationMode("contents")}
+            aria-label="فهرس الكتاب"
+            title="الفهرس"
+            aria-haspopup="dialog"
+            aria-controls="reader-navigation"
+            aria-expanded={navigationMode === "contents"}
+          >
+            <Icon name="contents" />
+          </button>
           <button
             className="settings-button"
             onClick={() => setPreferencesOpen(true)}
@@ -486,6 +659,14 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
           </footer>
         </div>
       </main>
+      <BookNavigationDialog
+        mode={navigationMode}
+        onClose={() => setNavigationMode(null)}
+        pages={orderedPages}
+        pageId={pageId}
+        basePath={basePath}
+        onNavigate={navigate}
+      />
       <PreferencesDialog
         open={preferencesOpen}
         onClose={() => setPreferencesOpen(false)}

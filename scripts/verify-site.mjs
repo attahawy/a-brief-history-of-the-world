@@ -57,6 +57,22 @@ export async function verifySite({
     assert.equal(document(".chapter-heading h1").text(), page.readingTitle);
     assert.equal(document(".brand small").text(), "من القرآن العظيم والحديث الشريف");
     assert.equal(document(".header-note").length, 0);
+    assert.deepEqual(
+      document(".header-actions button").map((_, node) => document(node).attr("aria-label")).get(),
+      ["البحث في الكتاب", "فهرس الكتاب", "إعدادات القراءة"],
+    );
+    assert.equal(document('#reader-navigation[open]').length, 0);
+    assert.deepEqual(
+      document("#navigation-results a").map((_, node) => document(node).attr("href")).get(),
+      book.pages.map((item) => basePath + "pages/" + item.pageid + "/"),
+    );
+    assert.equal(
+      document('#navigation-results a[aria-current="page"]').attr("href"),
+      basePath + "pages/" + page.pageid + "/",
+    );
+    assert.equal(document("#navigation-results .contents-number").first().text(), "1");
+    assert.equal(document("#navigation-results .contents-number").last().text(), String(book.pages.length));
+
     assert.equal(document("#root").attr("data-page-id"), String(page.pageid));
     assert.equal(document("#root").attr("data-book-digest"), digest);
     const content = load(renderPageMarkdown(page, book.pages, basePath));

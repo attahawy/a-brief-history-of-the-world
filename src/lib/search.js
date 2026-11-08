@@ -2,7 +2,7 @@ import { toLatinDigits } from "./numbers.js";
 
 export const normalize = (value) =>
   toLatinDigits(value.normalize("NFKC"))
-    .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
+    .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF\u0640]/g, "")
     .replace(/[أإآٱ]/g, "ا")
     .replace(/ى/g, "ي")
     .replace(/_/g, " ")
@@ -60,4 +60,21 @@ export function searchExcerpt(text, terms, length = 145) {
     if (boundary >= match[1]) end = boundary;
   }
   return `${start ? "…" : ""}${text.slice(start, end).trim()}${end < text.length ? "…" : ""}`;
+}
+
+
+export function createChapterSearchIndex(pages) {
+  return pages.map((page, index) => ({
+    page,
+    number: index + 1,
+    searchable: normalize(page.readingTitle + " " + page.text),
+  }));
+}
+
+export function searchChapters(index, query) {
+  const terms = searchTerms(query);
+  if (!terms.length) return [];
+  return index.filter(({ searchable }) =>
+    terms.every((term) => searchable.includes(term)),
+  );
 }
