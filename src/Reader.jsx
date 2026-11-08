@@ -364,7 +364,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
   const [theme, setTheme, themeLoaded] = useStored("theme", "paper");
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [navigationMode, setNavigationMode] = useState(null);
-  const [progress, setProgress] = useState(0);
   const articleRef = useRef(null);
   const startAtTopRef = useRef(false);
   const page = pagesById.get(pageId);
@@ -419,13 +418,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
     const onScroll = () => {
       const article = articleRef.current;
       if (!article) return;
-      const available = Math.max(
-        1,
-        document.documentElement.scrollHeight - window.innerHeight,
-      );
-      setProgress(
-        Math.min(100, Math.max(0, (window.scrollY / available) * 100)),
-      );
       clearTimeout(timer);
       timer = setTimeout(() => {
         try {
@@ -464,7 +456,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
         history.pushState(null, "", `${pagePath(id, basePath)}${anchor}`);
         startAtTopRef.current = true;
         setPageId(id);
-        setProgress(0);
       }
       document.getElementById("reading")?.focus({ preventScroll: true });
     },
@@ -674,11 +665,6 @@ export default function Reader({ book, initialPageId, basePath = "/" }) {
         setTheme={setTheme}
         fontSize={fontSize}
         setFontSize={setFontSize}
-      />
-      <div
-        className="scroll-progress"
-        style={{ width: `${progress}%` }}
-        aria-hidden="true"
       />
     </>
   );

@@ -462,15 +462,6 @@ button svg,
   text-align: end;
   margin-inline-start: auto;
 }
-.scroll-progress {
-  position: fixed;
-  bottom: 0;
-  inset-inline-start: 0;
-  height: 2px;
-  background: var(--green);
-  z-index: 50;
-  pointer-events: none;
-}
 .empty-state {
   padding: 70px 24px;
   text-align: center;
